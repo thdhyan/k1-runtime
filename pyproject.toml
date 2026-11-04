@@ -1,0 +1,25 @@
+[project]
+name = "k1-runtime"
+version = "0.1.0"
+description = "Torch/numpy-only policy runtime: WBC, push-IK core, arm IK, DS4 pad, gamepad core."
+requires-python = ">=3.10"
+dependencies = [
+  "evdev",
+  "mujoco",
+  "numpy",
+  "torch",
+  "k1-common",
+]
+
+[tool.uv.sources]
+k1-common = { git = "https://github.com/thdhyan/k1-common" }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/k1_runtime"]
+
+# Provided by the environment (ROS 2, Isaac Sim/Lab, mjlab, robot SDK) or not on PyPI under this name:
+# booster_interface, rclpy
