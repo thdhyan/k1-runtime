@@ -5,8 +5,8 @@ Torch/numpy-only policy runtime: WBC, push-IK core, arm IK, DS4 pad, gamepad cor
 | | |
 |---|---|
 | Layer | **L1**: Core (torch / numpy only) |
-| May import | [k1-common](https://github.com/thdhyan/k1-common) |
-| Files / LOC | 7 files · 1,352 lines (py, sh, cpp) |
+| May import | [k1-common](https://github.com/thdhyan/k1-common), [k1-description](https://github.com/thdhyan/k1-description) |
+| Files / LOC | 8 files · 1,466 lines (py, sh, cpp) |
 | Part of | [k1-workspace](https://github.com/thdhyan/k1-workspace) (architecture and layering rules live there) |
 
 ## Where it sits
@@ -14,6 +14,7 @@ Torch/numpy-only policy runtime: WBC, push-IK core, arm IK, DS4 pad, gamepad cor
 ```mermaid
 flowchart TB
   k1_common[k1-common]
+  k1_description[k1-description]
   k1_rl_isaac[k1-rl-isaac]
   k1_rl_mj[k1-rl-mj]
   k1_teleop[k1-teleop]
@@ -29,6 +30,7 @@ flowchart TB
   k1_deploy_robot --> k1_runtime
   k1_deploy_laptop --> k1_runtime
   k1_runtime --> k1_common
+  k1_runtime --> k1_description
 ```
 
 Used by: k1-rl-isaac, k1-rl-mj, k1-teleop, k1-vla, k1-deploy-robot, k1-deploy-laptop.
@@ -43,27 +45,57 @@ uv add git+https://github.com/thdhyan/k1-runtime
 uv sync
 ```
 
+## Usage
+
+Policy runtime with torch and numpy only. The same files run on the laptop and on the robot.
+
+| Module | What |
+|---|---|
+| `wbc` | decoupled WBC: `LocoCmd`, `HeadCmd`, `ArmCmd`, `DecoupledWBC`, joint tables |
+| `gamepad_core` | gains, `Walker`, `Body`, `ArmJog`, UDP `Gamepad` parser. Shared by the robot runner (k1-deploy-robot) and the sim (k1-deploy-laptop) |
+| `push_ik_core` | `PushIKController` for the two-robot box push |
+| `k1_arm_ik` | `ArmIK` (default URDF from k1-description) |
+| `ds4` | DS4 pad reader and light bar |
+
+`CAP` (command limits) is a module global. Set `gamepad_core.CAP` before you build a `Gamepad`.
+
+On the robot, `k1_gamepad_deploy.py` needs `gamepad_core.py` and `wbc.py` in a `k1_runtime/` directory next to it.
+Copy recipe: [docs/ROBOTS.md section 4](https://github.com/thdhyan/k1-workspace/blob/main/docs/ROBOTS.md).
+
+## Tests
+
+From a k1-workspace checkout (see its README, "Run the tests"):
+```bash
+cd libs/k1-runtime && python -m pytest -q tests
+```
+
+## Robots and hosts
+
+Robot IPs, SSH aliases, network, safety and how to control each robot: [docs/ROBOTS.md](https://github.com/thdhyan/k1-workspace/blob/main/docs/ROBOTS.md) in k1-workspace.
+
+## Environment variables read
+
+`K1_ACTION_SCALE`
+
 ## Layout
 
 ```
 README.md
-mjlab_k1/  (2 files)
-  test/  (1 files)
-  tests/  (1 files)
 pyproject.toml
-src/  (6 files)
-  k1_runtime/  (6 files)
+src/  (11 files)
+  k1_runtime/  (11 files)
+tests/  (7 files)
+  README.md
+  test_arm_ik.py
+  test_gamepad_core.py
+  test_wbc.py
 ```
 
 ## Dependencies
 
-- Declared sibling libraries: k1-common (see `pyproject.toml`, `[tool.uv.sources]`).
+- Declared sibling libraries: k1-common, k1-description (see `pyproject.toml`, `[tool.uv.sources]`).
 - PyPI: evdev, mujoco, numpy, torch.
 - Provided by the environment (ROS 2, Isaac, mjlab, robot SDK) or unresolved: `booster_interface`, `rclpy`.
-
-## `gamepad_core`
-
-`k1_gamepad_deploy.py` was split in three: this repo keeps the shared half (gains, `Walker`, `Body`, `ArmJog`, `Gamepad`), [k1-deploy-robot](https://github.com/thdhyan/k1-deploy-robot) keeps `run_robot`, and [k1-deploy-laptop](https://github.com/thdhyan/k1-deploy-laptop) keeps the MuJoCo sim-to-sim (`gamepad_sim.py`). `CAP` (command limits) is a module global: set `gamepad_core.CAP` before building a `Gamepad`.
 
 ## Hard-coded paths into other repos
 
@@ -71,9 +103,14 @@ These files still name paths that now live in another repo (hard-coded path stri
 
 | File | Refers to | Owner |
 |---|---|---|
-| `mjlab_k1/tests/test_wbc.py` | `mjlab_k1/` | k1-rl-mj |
 | `src/k1_runtime/gamepad_core.py` | `mjlab_k1/` | k1-rl-mj |
 | `src/k1_runtime/gamepad_core.py` | `mjlab_k1/deploy/` | k1-deploy-laptop |
+
+## Old `booster_ws` layout still referenced
+
+These files still name `booster_ws`, `isaac_tasks/` or `booster_train_ref` paths (container scripts not ported yet, or docstrings):
+
+- `tests/test_wbc.py`
 
 ## Origin
 
