@@ -1,6 +1,6 @@
 """K1 arm IK (trunk frame) for VR teleop: damped least squares on the K1 URDF
-(``k1_teleop/K1_22dof-ZED.urdf``, a copy of booster_assets
-``robots/K1/K1_22dof-ZED.urdf``; meshes are not needed), warm-started from the
+(``K1_22dof-ZED.urdf``, resolved by :mod:`k1_description`; meshes are not
+needed), warm-started from the
 last solution. Also full-body FK for the headset's robot-pose panel.
 
 K1 arms have 4 DoF and no wrist, so only the hand *position* is tracked:
@@ -24,7 +24,6 @@ ARM = ("Shoulder_Pitch", "Shoulder_Roll", "Elbow_Pitch", "Elbow_Yaw")
 HAND_TIP = 0.20            # m along the forearm (+y left, -y right) from *_hand_link
 ELBOW_SEED = 0.15         # rad, see ArmIK.solve
 ROOT = "Trunk"
-URDF = Path(__file__).resolve().parent / "K1_22dof-ZED.urdf"
 
 
 def _rpy(r: float, p: float, y: float) -> np.ndarray:
@@ -64,7 +63,10 @@ def load_urdf_joints(path: Path) -> dict[str, dict]:
 
 
 class ArmIK:
-    def __init__(self, urdf: Path = URDF):
+    def __init__(self, urdf: Path | None = None):
+        if urdf is None:
+            import k1_description
+            urdf = k1_description.robot_file(k1_description.URDF_ZED)
         self.joints = load_urdf_joints(urdf)
         self._by_child = {j["child"]: (n, j) for n, j in self.joints.items()}
         # the URDF prefixes the first joint of each chain ("A", "AA") to fix the import order
