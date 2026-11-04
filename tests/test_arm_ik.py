@@ -1,15 +1,14 @@
 """wbc.ArmIK / hand_fk against MuJoCo FK on the K1 model. Needs mujoco + torch, no mjlab."""
 import sys
-from pathlib import Path
 
 import mujoco
 import numpy as np
 import torch
 
-ROOT = Path(__file__).resolve().parents[2]
-from k1_runtime import wbc  # noqa: E402
+import k1_description
+from k1_runtime import wbc
 
-MODEL = ROOT / "src/k1_description/assets/robots/K1/K1_22dof.xml"
+MODEL = k1_description.robot_file(k1_description.MJCF)
 LEFT, RIGHT = wbc.JOINTS[2:6], wbc.JOINTS[6:10]
 
 
@@ -22,7 +21,7 @@ def _mj_hand(m, d, names, q, body):
   return d.xmat[t].reshape(3, 3).T @ (d.xpos[mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_BODY, body)] - d.xpos[t])
 
 
-def main():
+def test_arm_ik_matches_mujoco_fk():
   m = mujoco.MjModel.from_xml_path(str(MODEL))
   d = mujoco.MjData(m)
   torch.manual_seed(0)
@@ -69,4 +68,4 @@ def main():
 
 
 if __name__ == "__main__":
-  main()
+  test_arm_ik_matches_mujoco_fk()

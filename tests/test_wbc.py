@@ -1,12 +1,7 @@
-"""WP0 contract checks for wbc.py (loaded by path: no mjlab needed)."""
-import importlib.util
-from pathlib import Path
-
+"""WP0 contract checks for k1_runtime.wbc (no mjlab needed)."""
 import torch
 
-_spec = importlib.util.spec_from_file_location("wbc", Path(__file__).parents[1] / "src/mjlab_k1/wbc.py")
-wbc = importlib.util.module_from_spec(_spec)
-_spec.loader.exec_module(wbc)
+from k1_runtime import wbc
 
 
 def test_sizes():
@@ -31,7 +26,7 @@ def test_mirror_maps_limits():
 
 def test_command_clamps():
   big = torch.tensor([5.0])
-  assert wbc.LocoCmd(big, -big, big).tensor().tolist() == [[1.0, -0.5, 1.0]]
+  assert torch.allclose(wbc.LocoCmd(big, -big, big).tensor(), torch.tensor([[1.4, -0.5, 1.2]]))  # RANGE widened in booster_ws
   assert torch.allclose(wbc.HeadCmd(torch.tensor([[2.0, 2.0]])).tensor(), torch.tensor([[1.0, 0.855]]))
   arm = wbc.ArmCmd(torch.full((1, 8), 9.0)).tensor()
   assert torch.allclose(arm, torch.tensor(wbc.LIMITS[2:10])[:, 1][None])
