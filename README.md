@@ -9,6 +9,32 @@ Torch/numpy-only policy runtime: WBC, push-IK core, arm IK, DS4 pad, gamepad cor
 | Files / LOC | 7 files · 1,352 lines (py, sh, cpp) |
 | Part of | [k1-workspace](https://github.com/thdhyan/k1-workspace) (architecture and layering rules live there) |
 
+## Where it sits
+
+```mermaid
+flowchart TB
+  k1_common[k1-common]
+  k1_rl_isaac[k1-rl-isaac]
+  k1_rl_mj[k1-rl-mj]
+  k1_teleop[k1-teleop]
+  k1_vla[k1-vla]
+  k1_deploy_robot[k1-deploy-robot]
+  k1_deploy_laptop[k1-deploy-laptop]
+  k1_runtime((k1-runtime))
+  style k1_runtime fill:#e8833a,color:#000
+  k1_rl_isaac --> k1_runtime
+  k1_rl_mj --> k1_runtime
+  k1_teleop --> k1_runtime
+  k1_vla --> k1_runtime
+  k1_deploy_robot --> k1_runtime
+  k1_deploy_laptop --> k1_runtime
+  k1_runtime --> k1_common
+```
+
+Used by: k1-rl-isaac, k1-rl-mj, k1-teleop, k1-vla, k1-deploy-robot, k1-deploy-laptop.
+
+![k1-workspace layers](https://raw.githubusercontent.com/thdhyan/k1-workspace/main/docs/img/architecture.png)
+
 ## Install
 
 ```bash
@@ -20,6 +46,7 @@ uv sync
 ## Layout
 
 ```
+README.md
 mjlab_k1/  (2 files)
   test/  (1 files)
   tests/  (1 files)
